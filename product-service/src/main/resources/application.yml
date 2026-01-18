@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: product-service
+  datasource:
+    url: jdbc:postgresql://product-db:5432/product_db
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8081

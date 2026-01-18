@@ -1,0 +1,139 @@
+services:
+  # ==================== DATABASES ====================
+  product-db:
+    image: postgres:16
+    container_name: product-db
+    restart: always
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: product_pass
+    # Base de datos NO expone puerto (solo acceso interno)
+    volumes:
+      - product_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U product_user -d product_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  order-db:
+    image: mysql:8.0
+    container_name: order-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: order_db
+      MYSQL_USER: order_user
+      MYSQL_PASSWORD: order_pass
+      MYSQL_ROOT_PASSWORD: root_password
+    # Base de datos NO expone puerto (solo acceso interno)
+    volumes:
+      - order_data:/var/lib/mysql
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== MICROSERVICES ====================
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    restart: always
+    depends_on:
+      product-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-db:5432/product_db
+      SPRING_DATASOURCE_USERNAME: product_user
+      SPRING_DATASOURCE_PASSWORD: product_pass
+    # NO expone puerto al host (solo acceso interno)
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/v1/products"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  shipping-service:
+    build: ./shipping-service
+    container_name: shipping-service
+    restart: always
+    # NO expone puerto al host (solo acceso interno)
+    networks:
+      - microservices-net
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    restart: always
+    depends_on:
+      product-service:
+        condition: service_healthy
+      shipping-service:
+        condition: service_started
+      order-db:
+        condition: service_healthy
+    environment:
+      PRODUCT_API_URL: http://product-service:8081
+      SHIPPING_API_URL: http://shipping-service:8082
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://order-db:3306/order_db
+      QUARKUS_DATASOURCE_USERNAME: order_user
+      QUARKUS_DATASOURCE_PASSWORD: order_pass
+    # NO expone puerto al host (solo acceso interno)
+    networks:
+      - microservices-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/orders/1 || echo 'still starting'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ==================== API GATEWAY ====================
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    depends_on:
+      product-service:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+      shipping-service:
+        condition: service_started
+    # ÚNICO puerto expuesto al host (punto de entrada del sistema)
+    ports:
+      - "8080:8080"
+    networks:
+      - microservices-net
+    volumes:
+      # Montar el frontend estático dentro del contenedor Nginx
+      - ./frontend:/usr/share/nginx/html:ro
+      # Montar la configuración de nginx
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    # Logs del gateway
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ==================== NETWORKING ====================
+networks:
+  microservices-net:
+    driver: bridge
+
+# ==================== VOLUMES ====================
+volumes:
+  product_data:
+  order_data:

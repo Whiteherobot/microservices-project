@@ -1,0 +1,12 @@
+com\example\order\client\ProductClient.class
+com\example\order\resource\OrderResource$OrderRequest.class
+com\example\order\service\OrderService.class
+com\example\order\client\ProductClient$Product.class
+com\example\order\model\Order.class
+com\example\order\OrderApplication.class
+com\example\order\client\ShippingClient$ShippingRequest.class
+com\example\order\client\ShippingClient.class
+com\example\order\resource\OrderResource.class
+com\example\order\client\ShippingClient$ShippingResponse.class
+META-INF\panache-archive.marker
+com\example\order\model\Order$OrderStatus.class

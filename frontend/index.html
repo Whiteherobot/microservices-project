@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura de Microservicios - Evaluación</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-top">
+            <div>
+                <p class="eyebrow">Práctica universitaria · Evaluación guiada</p>
+                <h1>Arquitectura de Microservicios</h1>
+                <p class="lede">Front-end académico para evidenciar orquestación vía API Gateway</p>
+            </div>
+            <div class="meta">
+                <div class="meta-item">API Gateway: http://localhost:8080</div>
+                <div class="meta-item green">Gateway único · Sin acceso directo a microservicios</div>
+            </div>
+        </div>
+        <div class="stack-map">
+            <div class="stack-node">Frontend (HTML/CSS/JS)</div>
+            <div class="stack-arrow">→</div>
+            <div class="stack-node highlight">API Gateway</div>
+            <div class="stack-arrow">→</div>
+            <div class="stack-node">Product · Order · Shipping</div>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="card" id="step1">
+            <div class="card-head">
+                <div class="step">Paso 1</div>
+                <div>
+                    <p class="kicker">Consulta de catálogo</p>
+                    <h2>Productos existentes (GET /products)</h2>
+                </div>
+                <button id="refreshProducts" class="btn ghost">Actualizar</button>
+            </div>
+            <div class="card-body">
+                <div class="endpoint">Frontend → Gateway → Product Service</div>
+                <div id="productsLoading" class="banner info" hidden>Cargando productos desde el Gateway...</div>
+                <div id="productsError" class="banner danger" hidden></div>
+                <div id="productsEmpty" class="banner muted" hidden>No hay productos registrados.</div>
+                <div id="productsGrid" class="products-grid"></div>
+            </div>
+        </section>
+
+        <section class="card" id="step2">
+            <div class="card-head">
+                <div class="step">Paso 2</div>
+                <div>
+                    <p class="kicker">Gestión académica de datos</p>
+                    <h2>Crear nuevo producto (POST /products)</h2>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="endpoint">Frontend → Gateway → Product Service</div>
+                <form id="createProductForm" class="form-grid">
+                    <label class="form-field">
+                        <span>Nombre</span>
+                        <input type="text" id="productName" name="name" placeholder="Laptop" required>
+                    </label>
+                    <label class="form-field">
+                        <span>Precio</span>
+                        <input type="number" id="productPrice" name="price" min="0" step="0.01" placeholder="1999.00" required>
+                    </label>
+                    <label class="form-field">
+                        <span>Stock</span>
+                        <input type="number" id="productStock" name="stock" min="0" step="1" placeholder="50" required>
+                    </label>
+                    <button type="submit" class="btn primary" id="submitProduct">Registrar producto</button>
+                </form>
+                <div id="createProductLoading" class="banner info" hidden>Publicando producto vía Gateway...</div>
+                <div id="createProductSuccess" class="banner success" hidden>Producto creado correctamente.</div>
+                <div id="createProductError" class="banner danger" hidden></div>
+            </div>
+        </section>
+
+        <section class="card" id="step3">
+            <div class="card-head">
+                <div class="step">Paso 3</div>
+                <div>
+                    <p class="kicker">Orquestación</p>
+                    <h2>Crear orden (POST /orders)</h2>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="endpoint">Frontend → Gateway → Order Service → (Product + Shipping)</div>
+                <form id="orderForm" class="form-grid wide">
+                    <label class="form-field">
+                        <span>Producto</span>
+                        <select id="orderProductId" name="productId" required></select>
+                    </label>
+                    <label class="form-field">
+                        <span>Cantidad</span>
+                        <input type="number" id="orderQuantity" name="quantity" min="1" value="1" required>
+                    </label>
+                    <label class="form-field">
+                        <span>Peso (kg)</span>
+                        <input type="number" id="orderWeight" name="weight" min="0.1" step="0.1" value="2.0" required>
+                    </label>
+                    <label class="form-field">
+                        <span>Distancia (km)</span>
+                        <input type="number" id="orderDistance" name="distance" min="1" step="1" value="100" required>
+                    </label>
+                    <button type="submit" class="btn primary" id="submitOrder">Crear orden</button>
+                </form>
+                <div id="orderLoading" class="banner info" hidden>Orquestando: valida stock → calcula envío → persiste orden.</div>
+                <div id="orderError" class="banner danger" hidden></div>
+            </div>
+        </section>
+
+        <section class="card" id="step4">
+            <div class="card-head">
+                <div class="step">Paso 4</div>
+                <div>
+                    <p class="kicker">Resultado y trazabilidad</p>
+                    <h2>Orden generada y flujo completo</h2>
+                </div>
+            </div>
+            <div class="card-body result">
+                <div class="result-grid">
+                    <div class="stat">
+                        <p class="label">Order ID</p>
+                        <p class="value" id="resultOrderId">-</p>
+                    </div>
+                    <div class="stat">
+                        <p class="label">Estado</p>
+                        <p class="value" id="resultStatus">-</p>
+                    </div>
+                    <div class="stat">
+                        <p class="label">Costo producto</p>
+                        <p class="value" id="resultProductCost">-</p>
+                    </div>
+                    <div class="stat">
+                        <p class="label">Costo envío</p>
+                        <p class="value" id="resultShippingCost">-</p>
+                    </div>
+                    <div class="stat highlight">
+                        <p class="label">Total</p>
+                        <p class="value" id="resultTotalCost">-</p>
+                    </div>
+                </div>
+                <div class="flow">
+                    <div class="flow-title">Visualización del flujo de orquestación</div>
+                    <div class="flow-steps">
+                        <div class="flow-step" id="flow-product">Producto seleccionado</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step" id="flow-order">Orden creada</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step" id="flow-shipping">Envío calculado</div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-step highlight" id="flow-result">Resultado final</div>
+                    </div>
+                </div>
+                <div class="json-view">
+                    <div class="json-head">Respuesta completa</div>
+                    <pre id="orderResponseJson">Aún no hay orden creada.</pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="step5">
+            <div class="card-head">
+                <div class="step">Historial</div>
+                <div>
+                    <p class="kicker">Consulta de órdenes</p>
+                    <h2>Órdenes creadas (GET /orders)</h2>
+                </div>
+                <button id="refreshOrders" class="btn ghost">Actualizar</button>
+            </div>
+            <div class="card-body">
+                <div class="endpoint">Frontend → Gateway → Order Service</div>
+                <div id="ordersLoading" class="banner info" hidden>Cargando órdenes desde el Gateway...</div>
+                <div id="ordersError" class="banner danger" hidden></div>
+                <div id="ordersEmpty" class="banner muted" hidden>No hay órdenes registradas.</div>
+                <div id="ordersTable"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div>Evaluación de Arquitecturas de Microservicios · 2026</div>
+        <div>Servicios: Product · Order · Shipping · API Gateway</div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
