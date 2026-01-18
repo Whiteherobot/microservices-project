@@ -1,6 +1,6 @@
-# 🧪 GUÍA COMPLETA DE PRUEBAS - MICROSERVICES PROJECT
+# Guía Completa de Pruebas - Microservices Project
 
-## 📋 ÍNDICE
+## Índice
 1. [Preparación del Entorno](#preparación)
 2. [Iniciar la Infraestructura](#inicio)
 3. [Verificar Servicios](#verificación)
@@ -10,12 +10,12 @@
 
 ---
 
-## 🔧 PREPARACIÓN DEL ENTORNO
+## Preparación del Entorno
 
 ### Requisitos Previos
-- ✅ Docker Desktop instalado y ejecutándose
-- ✅ Puerto 8080 disponible (único puerto expuesto)
-- ✅ Navegador moderno (Chrome, Firefox, Edge)
+- Docker Desktop instalado y ejecutándose
+- Puerto 8080 disponible (único puerto expuesto)
+- Navegador moderno (Chrome, Firefox, Edge)
 
 ### Verificar Docker
 ```powershell
@@ -28,7 +28,7 @@ docker ps
 
 ---
 
-## 🚀 INICIAR LA INFRAESTRUCTURA
+## Iniciar la Infraestructura
 
 ### Paso 1: Navegar al Directorio del Proyecto
 ```powershell
@@ -57,7 +57,7 @@ Los servicios tardan en estar completamente listos. Espera a que:
 
 ---
 
-## ✅ VERIFICAR SERVICIOS
+## Verificar Servicios
 
 ### Opción 1: Ver Logs en Tiempo Real
 ```powershell
@@ -71,7 +71,7 @@ docker-compose logs -f product-service
 docker-compose logs -f shipping-service
 ```
 
-**Logs esperados:**
+Logs esperados:
 - **api-gateway**: `"start worker process"`
 - **order-service**: `"Listening on: http://0.0.0.0:8083"`
 - **product-service**: `"Started ProductServiceApplication"`
@@ -82,7 +82,7 @@ docker-compose logs -f shipping-service
 docker-compose ps
 ```
 
-**Estado esperado:**
+Estado esperado:
 ```
 NAME                  STATUS
 api-gateway           Up
@@ -94,17 +94,17 @@ product-db            Up (healthy)
 
 ### Opción 3: Probar Endpoints con cURL
 
-#### 1️⃣ Verificar API Gateway
+#### Verificar API Gateway
 ```powershell
 curl http://localhost:8080
 ```
-**Respuesta esperada:** Página HTML de Nginx o error 404 (normal)
+Respuesta esperada: Página HTML de Nginx o error 404 (normal)
 
-#### 2️⃣ Listar Productos
+#### Listar Productos
 ```powershell
 curl http://localhost:8080/products
 ```
-**Respuesta esperada:**
+Respuesta esperada:
 ```json
 [
   {
@@ -122,14 +122,14 @@ curl http://localhost:8080/products
 ]
 ```
 
-#### 3️⃣ Crear Orden de Prueba
+#### Crear Orden de Prueba
 ```powershell
 curl -X POST http://localhost:8080/orders `
   -H "Content-Type: application/json" `
   -d '{\"productId\":1,\"quantity\":2,\"shippingWeight\":5.0,\"shippingDistance\":100.0}'
 ```
 
-**Respuesta esperada (HTTP 201):**
+Respuesta esperada (HTTP 201):
 ```json
 {
   "id": 1,
@@ -144,7 +144,7 @@ curl -X POST http://localhost:8080/orders `
 
 ---
 
-## 🌐 PRUEBAS DEL FRONTEND
+## Pruebas del Frontend
 
 ### Paso 1: Abrir el Frontend
 ```powershell
@@ -152,7 +152,7 @@ curl -X POST http://localhost:8080/orders `
 start C:\Users\mlata\Desktop\microservices-project\frontend\index.html
 ```
 
-**O manualmente:**
+O manualmente:
 1. Abre tu navegador
 2. Presiona `Ctrl + O` (Abrir archivo)
 3. Navega a `C:\Users\mlata\Desktop\microservices-project\frontend\index.html`
@@ -162,49 +162,49 @@ start C:\Users\mlata\Desktop\microservices-project\frontend\index.html
 - **Chrome/Edge**: Presiona `F12` o `Ctrl + Shift + I`
 - **Firefox**: Presiona `F12`
 
-**Logs esperados en consola:**
+Logs esperados en consola:
 ```
-🚀 Aplicación iniciada - Conectando con API Gateway
-📋 Configuración de la aplicación:
+Aplicación iniciada - Conectando con API Gateway
+Configuración de la aplicación:
    API Gateway: http://localhost:8080
    Endpoints:
    - GET  /products → Product Service
    - POST /orders   → Order Service (con orquestación)
-📦 Solicitando productos al API Gateway...
-✅ 2 productos recibidos
+Solicitando productos al API Gateway...
+Productos recibidos: 2
 ```
 
 ### Paso 3: Inspeccionar la Interfaz
 
 **SECCIÓN 1: Productos Disponibles**
-- ✅ Se muestran tarjetas de productos con:
+- Se muestran tarjetas de productos con:
   - Nombre del producto
   - Precio ($999.99)
   - Stock disponible
   - ID del producto
-- ✅ Al hacer clic en un producto, se resalta (borde azul)
-- ✅ El primer producto está seleccionado por defecto
+- Al hacer clic en un producto, se resalta (borde azul)
+- El primer producto está seleccionado por defecto
 
 **SECCIÓN 2: Crear Nueva Orden**
-- ✅ Formulario con 4 campos:
+- Formulario con 4 campos:
   - Producto (dropdown)
   - Cantidad
   - Peso del Envío (kg)
   - Distancia de Envío (km)
-- ✅ Botón "Crear Orden" habilitado
+- Botón "Crear Orden" habilitado
 
 **SECCIÓN 3: Resultado de la Orden**
-- ⏸️ Oculta hasta que se cree una orden
+- Oculta hasta que se cree una orden
 
 **SECCIÓN 4: Información de Arquitectura**
-- ✅ Diagrama de flujo mostrando:
+- Diagrama de flujo mostrando:
   - Frontend → API Gateway → Microservicios
 
 ---
 
-## 🧪 ESCENARIOS DE PRUEBA
+## Escenarios de Prueba
 
-### Escenario 1: Crear Orden Exitosa ✅
+### Escenario 1: Crear Orden Exitosa
 
 **Pasos:**
 1. Selecciona el producto **"Laptop"** (haciendo clic en la tarjeta)
@@ -215,48 +215,48 @@ start C:\Users\mlata\Desktop\microservices-project\frontend\index.html
 3. Haz clic en **"Crear Orden"**
 
 **Resultado Esperado:**
-- 🔄 Se muestra un spinner de carga
-- ⏳ Mensaje: "Orquestando orden..."
-- ✅ Aparece alerta verde: "¡Orden creada exitosamente!"
-- 📊 Se muestra resultado con:
+- Se muestra un spinner de carga
+- Mensaje: "Orquestando orden..."
+- Aparece alerta verde: "Orden creada exitosamente"
+- Se muestra resultado con:
   - **ID de Orden**: #1
   - **Producto**: Laptop
   - **Cantidad**: 2
   - **Subtotal**: $1999.98
   - **Costo de Envío**: $50.00
   - **Total**: $2049.98
-- 🔍 El stock de "Laptop" se reduce de 10 a 8
-- 📋 Detalles JSON expandibles disponibles
+- El stock de "Laptop" se reduce de 10 a 8
+- Detalles JSON expandibles disponibles
 
 **Consola del Navegador:**
 ```
-📝 Creando orden: {productId: 1, quantity: 2, shippingWeight: 5, shippingDistance: 100}
-🚀 Enviando orden al API Gateway...
-✅ Orden creada exitosamente: {id: 1, productId: 1, ...}
+Creando orden: {productId: 1, quantity: 2, shippingWeight: 5, shippingDistance: 100}
+Enviando orden al API Gateway...
+Orden creada exitosamente: {id: 1, productId: 1, ...}
 ```
 
 ---
 
-### Escenario 2: Producto sin Stock ❌
+### Escenario 2: Producto sin Stock
 
 **Pasos:**
 1. Crea 5 órdenes del producto "Mouse" con cantidad `10` cada una
 2. Intenta crear una 6ª orden con cantidad `5`
 
 **Resultado Esperado:**
-- ❌ Alerta roja: "Error al crear la orden:"
-- 📝 Mensaje: "Stock insuficiente para el producto solicitado"
-- 🔍 HTTP 409 Conflict
-- 📊 No se muestra resultado de orden
+- Alerta roja: "Error al crear la orden:"
+- Mensaje: "Stock insuficiente para el producto solicitado"
+- HTTP 409 Conflict
+- No se muestra resultado de orden
 
 **Consola del Navegador:**
 ```
-❌ Error creando orden: Stock insuficiente para el producto solicitado
+Error creando orden: Stock insuficiente para el producto solicitado
 ```
 
 ---
 
-### Escenario 3: Producto Inexistente ❌
+### Escenario 3: Producto Inexistente
 
 **Pasos:**
 1. Abre la consola del navegador (`F12`)
@@ -270,26 +270,26 @@ fetch('http://localhost:8080/orders', {
 ```
 
 **Resultado Esperado:**
-- ❌ HTTP 404 Not Found
-- 📝 Error: "Producto no encontrado con ID: 999"
+- HTTP 404 Not Found
+- Error: "Producto no encontrado con ID: 999"
 
 ---
 
-### Escenario 4: Validación de Formulario ⚠️
+### Escenario 4: Validación de Formulario
 
 **Pasos:**
 1. Deja el campo "Cantidad" vacío o con `0`
 2. Haz clic en "Crear Orden"
 
 **Resultado Esperado:**
-- ⚠️ Alerta amarilla/roja: "Errores de validación:"
-- 📋 Lista de errores:
+- Alerta amarilla/roja: "Errores de validación:"
+- Lista de errores:
   - "La cantidad debe ser al menos 1"
-- 🚫 No se envía la petición al servidor
+- No se envía la petición al servidor
 
 ---
 
-### Escenario 5: Múltiples Órdenes Consecutivas ✅
+### Escenario 5: Múltiples Órdenes Consecutivas
 
 **Pasos:**
 1. Crea una orden de "Laptop" (cantidad: 1)
@@ -298,14 +298,14 @@ fetch('http://localhost:8080/orders', {
 4. Repite 2-3 veces más
 
 **Resultado Esperado:**
-- ✅ Cada orden se procesa independientemente
-- 🔄 El stock se actualiza después de cada orden
-- 📊 Cada resultado muestra el ID incremental (1, 2, 3, 4...)
-- 🧹 El botón "Crear Nueva Orden" resetea el formulario
+- Cada orden se procesa independientemente
+- El stock se actualiza después de cada orden
+- Cada resultado muestra el ID incremental (1, 2, 3, 4...)
+- El botón "Crear Nueva Orden" resetea el formulario
 
 ---
 
-### Escenario 6: Verificar Orquestación (Backend) 🔍
+### Escenario 6: Verificar Orquestación (Backend)
 
 **Pasos:**
 1. Abre PowerShell
@@ -315,7 +315,7 @@ docker-compose logs -f order-service
 ```
 3. Crea una orden desde el frontend
 
-**Logs Esperados:**
+Logs Esperados:
 ```
 INFO  Recibida solicitud de orden: {productId=1, quantity=2, ...}
 INFO  Consultando producto ID 1 desde Product Service
@@ -328,21 +328,21 @@ INFO  Orden persistida con ID: 1
 INFO  Orden creada exitosamente: {id=1, total=2049.98}
 ```
 
-**Esto demuestra:**
-- ✅ Order Service actúa como orquestador
-- ✅ Llama a Product Service (validación + stock)
-- ✅ Llama a Shipping Service (cálculo)
-- ✅ Persiste la orden en H2
+Esto demuestra:
+- Order Service actúa como orquestador
+- Llama a Product Service (validación + stock)
+- Llama a Shipping Service (cálculo)
+- Persiste la orden en H2
 
 ---
 
-## 🛠️ RESOLUCIÓN DE PROBLEMAS
+## Resolución de Problemas
 
 ### Problema 1: "Error al cargar productos"
 
 **Síntomas:**
 - Página muestra alerta roja
-- Consola: `❌ Error cargando productos: Failed to fetch`
+- Consola: `Error cargando productos: Failed to fetch`
 
 **Soluciones:**
 ```powershell
@@ -429,7 +429,7 @@ docker-compose logs product-db
 - Consola: `Access to fetch at 'http://localhost:8080/...' from origin 'file://' has been blocked by CORS`
 
 **Solución:**
-⚠️ **Esto es normal si abres index.html directamente desde el sistema de archivos.**
+Esto es normal si abres index.html directamente desde el sistema de archivos.
 
 **Opción A: Usar un servidor HTTP local**
 ```powershell
@@ -440,7 +440,7 @@ python -m http.server 3000
 # Luego abre: http://localhost:3000
 ```
 
-**Opción B: Modificar Nginx para permitir file://****
+**Opción B: Modificar Nginx para permitir file://**
 ```nginx
 # En api-gateway/nginx.conf, agregar:
 add_header 'Access-Control-Allow-Origin' '*';
@@ -448,22 +448,22 @@ add_header 'Access-Control-Allow-Origin' '*';
 
 ---
 
-## 📊 VALIDACIÓN FINAL - CHECKLIST
+## Validación Final - Checklist
 
-### ✅ Infraestructura
+### Infraestructura
 - [ ] Todos los contenedores están `Up`
 - [ ] Puerto 8080 es el único expuesto
 - [ ] Logs no muestran errores críticos
 - [ ] PostgreSQL está `healthy`
 
-### ✅ Backend
+### Backend
 - [ ] GET /products devuelve lista de productos
 - [ ] POST /orders crea órdenes exitosamente
 - [ ] Errores de negocio (404, 409) funcionan
 - [ ] Stock se decrementa correctamente
 - [ ] Orquestación se refleja en logs
 
-### ✅ Frontend
+### Frontend
 - [ ] Productos cargan automáticamente
 - [ ] Formulario valida campos
 - [ ] Órdenes se crean y muestran resultado
@@ -471,7 +471,7 @@ add_header 'Access-Control-Allow-Origin' '*';
 - [ ] Diseño responsive funciona
 - [ ] Consola no muestra errores
 
-### ✅ Arquitectura
+### Arquitectura
 - [ ] Frontend solo habla con API Gateway (puerto 8080)
 - [ ] Microservicios NO están expuestos directamente
 - [ ] Order Service orquesta Product + Shipping
@@ -480,14 +480,14 @@ add_header 'Access-Control-Allow-Origin' '*';
 
 ---
 
-## 🎓 ENTREGABLES PARA EVALUACIÓN
+## Entregables para Evaluación
 
 ### 1. Capturas de Pantalla
-- ✅ Navegador mostrando productos cargados
-- ✅ Formulario con datos completos
-- ✅ Resultado de orden exitosa con ID
-- ✅ Stock actualizado después de orden
-- ✅ Consola del navegador con logs
+- Navegador mostrando productos cargados
+- Formulario con datos completos
+- Resultado de orden exitosa con ID
+- Stock actualizado después de orden
+- Consola del navegador con logs
 
 ### 2. Evidencia de Logs
 ```powershell
@@ -508,7 +508,7 @@ docker-compose logs > logs-completos.txt
 
 ---
 
-## 📞 SOPORTE
+## Soporte
 
 Si encuentras problemas no documentados:
 
@@ -532,7 +532,3 @@ Si encuentras problemas no documentados:
    ```powershell
    docker network inspect microservices-project_microservices-net
    ```
-
----
-
-**¡Buena suerte con tu evaluación universitaria! 🎓✨**
