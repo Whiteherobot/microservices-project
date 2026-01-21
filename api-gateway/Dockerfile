@@ -1,11 +1,13 @@
 FROM nginx:alpine
 
-# Copiar configuración de Nginx personalizada
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copiar frontend estático y configuración de Nginx (el contexto de build ahora es la raíz del repo)
+COPY frontend /usr/share/nginx/html
+COPY api-gateway/nginx.conf /etc/nginx/nginx.conf
 
-# Crear directorio de logs
+# Crear directorio de logs y ajustar permisos para el usuario nginx
 RUN mkdir -p /var/log/nginx && \
-    chmod 755 /var/log/nginx
+    chmod 755 /var/log/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html
 
 # Exponer puerto interno del gateway
 EXPOSE 8080

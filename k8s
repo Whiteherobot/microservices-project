@@ -1,0 +1,410 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: api-gateway
+  name: api-gateway
+spec:
+  type: LoadBalancer
+  ports:
+    - name: "http"
+      port: 8080
+      targetPort: 8080
+  selector:
+    io.kompose.service: api-gateway
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: api-gateway
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-gateway
+  template:
+    metadata:
+      labels:
+        io.kompose.service: api-gateway
+    spec:
+      containers:
+        - image: microservices-project/api-gateway:latest
+          imagePullPolicy: Never
+          command:
+            - nginx
+            - "-g"
+            - "daemon off;"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          name: api-gateway
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: order-db
+    spec:
+      containers:
+        - env:
+            - name: MYSQL_DATABASE
+              value: order_db
+            - name: MYSQL_PASSWORD
+              value: order_pass
+            - name: MYSQL_ROOT_PASSWORD
+              value: root_password
+            - name: MYSQL_USER
+              value: order_user
+          image: mysql:8.0
+          name: order-db
+          ports:
+            - containerPort: 3306
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: order-data
+      restartPolicy: Always
+      volumes:
+        - name: order-data
+          persistentVolumeClaim:
+            claimName: order-data
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: order-data
+  name: order-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: order-service
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-service
+  template:
+    metadata:
+      labels:
+        io.kompose.service: order-service
+    spec:
+      containers:
+        - env:
+            - name: PRODUCT_API_URL
+              value: http://product-service:8081
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: jdbc:mysql://order-db:3306/order_db
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              value: order_pass
+            - name: QUARKUS_DATASOURCE_USERNAME
+              value: order_user
+            - name: SHIPPING_API_URL
+              value: http://shipping-service:8082
+          image: microservices-project/order-service:latest
+          imagePullPolicy: Never
+          name: order-service
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /q/health
+              port: 8083
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /q/health
+              port: 8083
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: product-db
+  name: product-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: product-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: product-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: product_db
+            - name: POSTGRES_PASSWORD
+              value: product_pass
+            - name: POSTGRES_USER
+              value: product_user
+          image: postgres:16
+          name: product-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - product_user
+                - -d
+                - product_db
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: product-data
+      restartPolicy: Always
+      volumes:
+        - name: product-data
+          persistentVolumeClaim:
+            claimName: product-data
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: product-data
+  name: product-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: product-service
+  name: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: product-service
+  template:
+    metadata:
+      labels:
+        io.kompose.service: product-service
+    spec:
+      containers:
+        - env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: product_pass
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://product-db:5432/product_db
+            - name: SPRING_DATASOURCE_USERNAME
+              value: product_user
+          image: microservices-project/product-service:latest
+          imagePullPolicy: Never
+          name: product-service
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/products
+              port: 8081
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /v1/products
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: shipping-service
+  name: shipping-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: shipping-service
+  template:
+    metadata:
+      labels:
+        io.kompose.service: shipping-service
+    spec:
+      containers:
+        - image: microservices-project/shipping-service:latest
+          imagePullPolicy: Never
+          name: shipping-service
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 8082
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: product-db
+  name: product-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: "postgres"
+      port: 5432
+      targetPort: 5432
+  selector:
+    io.kompose.service: product-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: "mysql"
+      port: 3306
+      targetPort: 3306
+  selector:
+    io.kompose.service: order-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: product-service
+  name: product-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: "http"
+      port: 8081
+      targetPort: 8081
+  selector:
+    io.kompose.service: product-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: order-service
+  name: order-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: "http"
+      port: 8083
+      targetPort: 8083
+  selector:
+    io.kompose.service: order-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: shipping-service
+  name: shipping-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: "http"
+      port: 8082
+      targetPort: 8082
+  selector:
+    io.kompose.service: shipping-service
+
